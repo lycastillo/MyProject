@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image, Modal } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { enableScreens } from 'react-native-screens';
-
-enableScreens();
+import * as Facebook from 'expo-facebook';
+import firebase from './firebaseConfig';
 
 const Stack = createStackNavigator();
 
@@ -13,6 +12,24 @@ function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
+
+  async function handleLoginWithFacebook() {
+    try {
+      const { type, token } = await Facebook.logInWithReadPermissionsAsync({
+        permissions: ['public_profile', 'email'],
+        appId: '579093097819019',
+      });
+      if (type === 'success') {
+        const credential = firebase.auth.FacebookAuthProvider.credential(token);
+        await firebase.auth().signInWithCredential(credential);
+        navigation.navigate('Modules');
+      } else {
+        Alert.alert('Facebook login canceled');
+      }
+    } catch (error) {
+      Alert.alert('Facebook Login Error', error.message);
+    }
+  }
 
   const handleLogin = () => {
     if (!email || !password) {
@@ -23,16 +40,13 @@ function LoginScreen({ navigation }) {
     navigation.navigate('Modules');
   };
 
-  const handleForgotPassword = () => {
-    setModalVisible(true);
-  };
+  const handleForgotPassword = () => setModalVisible(true);
 
   const handleSendCode = () => {
     if (!forgotEmail) {
       Alert.alert("Error", "Please enter your registered email.");
       return;
     }
-
     const code = Math.floor(100000 + Math.random() * 900000).toString();
     Alert.alert("Verification Code Sent", `Code: ${code}\nPlease check your email.`);
     setModalVisible(false);
@@ -45,11 +59,11 @@ function LoginScreen({ navigation }) {
       <Text style={styles.subtitle}>Enter your information below</Text>
 
       <View style={styles.socialButtonsContainer}>
-        <TouchableOpacity style={styles.socialButton}>
+        <TouchableOpacity style={styles.socialButton} onPress={() => Alert.alert('Google button pressed')}>
           <Image source={require('./assets/google_logo.png')} style={styles.socialIcon} />
           <Text style={styles.socialButtonText}>Gmail</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.socialButton}>
+        <TouchableOpacity style={styles.socialButton} onPress={handleLoginWithFacebook}>
           <Image source={{ uri: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png' }} style={styles.socialIcon} />
           <Text style={styles.socialButtonText}>Facebook</Text>
         </TouchableOpacity>
@@ -106,7 +120,7 @@ function RegisterScreen({ navigation }) {
       return;
     }
     Alert.alert("Registration Successful", `Welcome, ${name}!`);
-    navigation.navigate('Modules'); // Directly navigate to Modules
+    navigation.navigate('Modules');
   };
 
   return (

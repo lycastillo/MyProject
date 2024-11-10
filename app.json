@@ -22,6 +22,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-facebook"
+    ],
+    "facebookAppId": "579093097819019",  
+    "facebookDisplayName": "MyProject",
+    "facebookScheme": "fb579093097819019"  
   }
 }
